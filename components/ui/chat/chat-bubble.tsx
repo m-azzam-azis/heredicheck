@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import MessageLoading from "./message-loading";
 import { Button, ButtonProps } from "../button";
 import Image from "next/image";
-import { User } from "@/types/User";
 
 // ChatBubble
 const chatBubbleVariant = cva(
@@ -24,7 +23,7 @@ const chatBubbleVariant = cva(
       variant: "received",
       layout: "default",
     },
-  },
+  }
 );
 
 interface ChatBubbleProps
@@ -36,7 +35,7 @@ const ChatBubble = React.forwardRef<HTMLDivElement, ChatBubbleProps>(
     <div
       className={cn(
         chatBubbleVariant({ variant, layout, className }),
-        "relative group",
+        "relative group"
       )}
       ref={ref}
       {...props}
@@ -47,45 +46,44 @@ const ChatBubble = React.forwardRef<HTMLDivElement, ChatBubbleProps>(
               variant,
               layout,
             } as React.ComponentProps<typeof child.type>)
-          : child,
+          : child
       )}
     </div>
-  ),
+  )
 );
 ChatBubble.displayName = "ChatBubble";
 
 // ChatBubbleAvatar
 interface ChatBubbleAvatarProps {
-  type:string;
+  type: string;
 }
 
 const ChatBubbleAvatar: React.FC<ChatBubbleAvatarProps> = ({ type }) => (
   <div className="w-8 h-8 relative rounded-full overflow-hidden">
-   {type == "sent" ? ( 
-     <Image
-      width={112}
-      height={112}
-      src="https://ui-avatars.com/api/?name=U+"
-      style={{
-        width: "auto",
-        height: "auto",
-      }}
-      alt="User"
-    />
-    ):(
+    {type == "sent" ? (
       <Image
-      width={112}
-      height={112}
-      src="https://ui-avatars.com/api/?name=A+I"
-      style={{
-        width: "auto",
-        height: "auto",
-      }}
-      alt="User"
-    />
+        width={112}
+        height={112}
+        src="https://ui-avatars.com/api/?name=U+"
+        style={{
+          width: "auto",
+          height: "auto",
+        }}
+        alt="User"
+      />
+    ) : (
+      <Image
+        width={112}
+        height={112}
+        src="https://ui-avatars.com/api/?name=A+I"
+        style={{
+          width: "auto",
+          height: "auto",
+        }}
+        alt="User"
+      />
     )}
   </div>
-  
 );
 
 // ChatBubbleMessage
@@ -119,12 +117,12 @@ const ChatBubbleMessage = React.forwardRef<
 >(
   (
     { className, variant, layout, isLoading = false, children, ...props },
-    ref,
+    ref
   ) => (
     <div
       className={cn(
         chatBubbleMessageVariants({ variant, layout, className }),
-        "break-words max-w-[calc(100%-2.5rem)] whitespace-pre-wrap",
+        "break-words max-w-[calc(100%-2.5rem)] whitespace-pre-wrap"
       )}
       ref={ref}
       {...props}
@@ -137,7 +135,7 @@ const ChatBubbleMessage = React.forwardRef<
         children
       )}
     </div>
-  ),
+  )
 );
 ChatBubbleMessage.displayName = "ChatBubbleMessage";
 
@@ -198,7 +196,7 @@ const ChatBubbleActionWrapper = React.forwardRef<
       variant === "sent"
         ? "-left-1 -translate-x-full flex-row-reverse"
         : "-right-1 translate-x-full",
-      className,
+      className
     )}
     {...props}
   >
