@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import BgDecoration from "./svg/BgDecoration";
 import FamilyTree from "./svg/FamilyTree";
+import { useRouter } from "next/navigation";
 
 const integrations = [
   "athenahealth-logo.png",
@@ -38,6 +39,8 @@ const AboutSection = () => {
   const [count1, setCount1] = useState(0);
   const [count2, setCount2] = useState(0);
   const [count3, setCount3] = useState(0);
+
+  const Router = useRouter();
 
   useEffect(() => {
     if (isInView) {
@@ -361,7 +364,10 @@ const AboutSection = () => {
                 streamlined the process to make genetic screening accessible and
                 actionable.
               </p>
-              <Button className="bg-white text-green-600 hover:bg-green-50">
+              <Button
+                onClick={() => Router.push("/assessment")}
+                className="bg-white text-green-600 hover:bg-green-50"
+              >
                 Start Your Assessment
               </Button>
             </div>

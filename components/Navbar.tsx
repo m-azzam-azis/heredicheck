@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,15 +10,34 @@ import {
   SheetTrigger,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useCallback } from "react";
 import FHIR from "fhirclient";
 import { launchOptions } from "@/config/config";
 import IMeldRxLaunchData from "@/config/IMeldRxLaunchData";
 import { Menu } from "lucide-react";
 import { motion } from "framer-motion";
+import { AppContext } from "@/lib/hooks/AppContext/AppContext";
+import { formatName, getOfficialNameForPatient } from "@/lib/utils/fhir-utils";
+import { ChevronDown, User } from "lucide-react";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const appContext = useContext(AppContext);
+  const isPatientSphere = pathname?.startsWith("/patient-sphere");
+
+  const patientName = appContext.patient
+    ? getOfficialNameForPatient(appContext.patient)
+    : null;
+  const patientNameDisplay = patientName ? formatName(patientName) : "Unknown";
 
   const onLaunchClick = useCallback((launchData: IMeldRxLaunchData) => {
     console.log(JSON.stringify(launchData));
@@ -30,8 +50,34 @@ export function Navbar() {
     });
   }, []);
 
+  const PatientDropdown = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="border-green-600 text-green-600 hover:bg-green-50"
+        >
+          <span className="flex items-center gap-2">
+            {patientNameDisplay}
+            <ChevronDown className="h-4 w-4" />
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56">
+        <DropdownMenuLabel className="flex flex-col items-center gap-2">
+          <User className="h-4 w-4" />
+          <span>{patientNameDisplay}</span>
+          <span className="text-xs text-gray-500">
+            {appContext.patientFhirId}
+          </span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-[10] w-full border-b bg-white/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -93,10 +139,10 @@ export function Navbar() {
             transition={{ duration: 0.5, delay: 0.3 }}
           >
             <Link
-              href="/conditions"
+              href="/assessment"
               className="text-sm font-medium transition-colors hover:text-green-600"
             >
-              Check for Conditions
+              Self Assessment
             </Link>
           </motion.div>
         </nav>
@@ -107,24 +153,28 @@ export function Navbar() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Button
-              asChild
-              variant="outline"
-              className="hidden border-green-600 text-green-600 hover:bg-green-50 hover:text-green-50 md:inline-flex"
-            >
-              <div className="flex justify-center h-fit sm:rounded-lg my-2 w-fit hover:bg-green-600 hover:text-green-50">
-                {launchOptions.map(
-                  (launchConfiguration: IMeldRxLaunchData, index: number) => (
-                    <button
-                      key={`launch-button-${index}`}
-                      onClick={() => onLaunchClick(launchConfiguration)}
-                    >
-                      Launch with MeldRx
-                    </button>
-                  )
-                )}
-              </div>
-            </Button>
+            {isPatientSphere ? (
+              <PatientDropdown />
+            ) : (
+              <Button
+                asChild
+                variant="outline"
+                className="hidden border-green-600 text-green-600 hover:bg-green-50 hover:text-green-50 md:inline-flex"
+              >
+                <div className="flex justify-center h-fit sm:rounded-lg my-2 w-fit hover:bg-green-600 hover:text-green-50">
+                  {launchOptions.map(
+                    (launchConfiguration: IMeldRxLaunchData, index: number) => (
+                      <button
+                        key={`launch-button-${index}`}
+                        onClick={() => onLaunchClick(launchConfiguration)}
+                      >
+                        Launch with MeldRx
+                      </button>
+                    )
+                  )}
+                </div>
+              </Button>
+            )}
           </motion.div>
 
           {/* Mobile Menu Button */}

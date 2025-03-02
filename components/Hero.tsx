@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { CheckCircle, Activity, Shield } from "lucide-react";
 import Dna from "./svg/Dna";
+import { useRouter } from "next/navigation";
 
 const HeroSection = () => {
+  const Router = useRouter();
   return (
     <section className="relative overflow-hidden bg-white">
       {/* Decorative background elements */}
@@ -52,6 +54,7 @@ const HeroSection = () => {
               <Button
                 size="lg"
                 className="bg-green-600 text-white hover:bg-green-700"
+                onClick={() => Router.push("/assessment")}
               >
                 Start Free Assessment
               </Button>
@@ -59,6 +62,7 @@ const HeroSection = () => {
                 variant="outline"
                 size="lg"
                 className="border-green-600 text-green-600 hover:bg-green-50"
+                onClick={() => Router.push("/chatbot")}
               >
                 Talk to an Expert
               </Button>

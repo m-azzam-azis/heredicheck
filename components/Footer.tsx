@@ -1,14 +1,22 @@
-// HerediCheckFooter.jsx
+"use client";
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Github, Linkedin, Youtube, Code2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { IconBrandGithub, IconBrandGithubFilled } from "@tabler/icons-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const pathname = usePathname();
+
+  // Don't render footer in patient-sphere
+  if (pathname?.startsWith("/patient-sphere")) {
+    return null;
+  }
 
   return (
-    <footer className="w-full bg-gradient-to-b from-green-950 to-emerald-900 text-green-50 py-8 mt-auto">
+    <footer className="z-50 w-full bg-gradient-to-b from-green-950 to-emerald-900 text-green-50 py-8 mt-auto ">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* App Info */}
@@ -25,7 +33,6 @@ const Footer = () => {
             <h3 className="text-xl font-bold text-green-300">Developers</h3>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm">Azzam</span>
                 <div className="flex gap-2">
                   <Link
                     href="https://github.com/m-azzam-azis"
@@ -41,10 +48,11 @@ const Footer = () => {
                   >
                     <Linkedin size={16} />
                   </Link>
+                  <span className="text-slate-100"> | </span>
+                  <span className="text-sm">Azzam</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm">Faiz Assabil</span>
                 <div className="flex gap-2">
                   <Link
                     href="https://github.com/fassabilf"
@@ -60,6 +68,8 @@ const Footer = () => {
                   >
                     <Linkedin size={16} />
                   </Link>
+                  <span className="text-slate-100"> | </span>
+                  <span className="text-sm">Faiz Assabil</span>
                 </div>
               </div>
             </div>
@@ -75,8 +85,18 @@ const Footer = () => {
                   target="_blank"
                   className="text-sm text-green-200 hover:text-white transition-colors flex items-center gap-2"
                 >
-                  <Code2 size={16} />
-                  <span>GitHub Repository</span>
+                  <IconBrandGithub size={16} />
+                  <span>Github - Front-end</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="https://github.com/fassabilf/heredicheck-ai"
+                  target="_blank"
+                  className="text-sm text-green-200 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <IconBrandGithub size={16} />
+                  <span>Github - AI model</span>
                 </Link>
               </li>
               <li>
