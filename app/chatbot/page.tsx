@@ -12,6 +12,7 @@ import { createRef, useState, KeyboardEvent, useRef, useEffect } from "react"; /
 
 import chat from "@/lib/GeminiAI";
 import ReactMarkdown from "react-markdown";
+import { motion } from "framer-motion"; // Add this import
 
 export default function ChatBotPage() {
   const [input, setInput] = useState("");
@@ -62,13 +63,17 @@ export default function ChatBotPage() {
 
   return (
     <div className="flex flex-col h-screen px-20 py-20 gap-4">
-      <h1 className="bg-gradient-to-r hidden lg:block to-green-700 from-emerald-500 bg-clip-text text-transparent font-bold text-3xl">
+      <motion.h1
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-gradient-to-r hidden lg:block to-green-700 from-emerald-500 bg-clip-text text-transparent font-bold text-3xl"
+      >
         HerediCheck AI Assistant
-      </h1>
+      </motion.h1>
 
       {/* Chat messages container */}
       <div className="flex-1 min-h-0">
-        {" "}
         {/* min-h-0 is important for flex child scrolling */}
         <ChatMessageList
           className="h-full overflow-y-auto border rounded-lg"
@@ -76,21 +81,39 @@ export default function ChatBotPage() {
         >
           {messages.map((message, index) => (
             <ChatMessageList className="h-fit" key={index}>
-              <ChatBubble variant="sent">
-                <User className="h-6 w-6" />
-                <ChatBubbleMessage variant="sent" className="h-fit mx-2">
-                  {message.input}
-                </ChatBubbleMessage>
-              </ChatBubble>
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="flex justify-end"
+              >
+                <ChatBubble variant="sent">
+                  <div className="bg-gray-200/80 rounded-full p-2 grid-place-items-center">
+                    <User className="h-6 w-6" />
+                  </div>
+                  <ChatBubbleMessage variant="sent" className="h-fit mx-2">
+                    {message.input}
+                  </ChatBubbleMessage>
+                </ChatBubble>
+              </motion.div>
 
               <ChatBubble variant="received">
-                <Bot className="h-6 w-6" />
+                <div className="bg-gray-200/80 rounded-full p-2 grid-place-items-center">
+                  <Bot className="h-6 w-6" />
+                </div>
                 {message.response === "loading" ? (
                   <ChatBubbleMessage isLoading />
                 ) : (
-                  <ChatBubbleMessage variant="received">
-                    <ReactMarkdown>{message.response}</ReactMarkdown>
-                  </ChatBubbleMessage>
+                  <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="flex justify-start"
+                  >
+                    <ChatBubbleMessage variant="received">
+                      <ReactMarkdown>{message.response}</ReactMarkdown>
+                    </ChatBubbleMessage>
+                  </motion.div>
                 )}
               </ChatBubble>
             </ChatMessageList>
@@ -100,7 +123,12 @@ export default function ChatBotPage() {
       </div>
 
       {/* Input section - now part of normal flow */}
-      <div className="flex gap-2 bg-white">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex gap-2 bg-white"
+      >
         <ChatInput
           placeholder="What can i help you with today?"
           className="min-h-12"
@@ -119,7 +147,7 @@ export default function ChatBotPage() {
             <CornerDownLeft className="size-3.5" />
           </Button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

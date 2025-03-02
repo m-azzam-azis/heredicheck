@@ -89,6 +89,15 @@ const AboutSection = () => {
     }),
   };
 
+  const titleVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+
   const conditions = [
     {
       name: "Heart Disease",
@@ -305,9 +314,14 @@ const AboutSection = () => {
           </motion.div>
         </div>
 
-        <h3 className="mb-8 text-center text-2xl font-bold text-gray-900">
+        <motion.h3
+          initial={{ opacity: 0, y: -20 }}
+          animate={controls}
+          variants={titleVariants}
+          className="mb-8 text-center text-2xl font-bold text-gray-900"
+        >
           Conditions We Screen For
-        </h3>
+        </motion.h3>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {conditions.map((condition, i) => (
@@ -378,10 +392,26 @@ const AboutSection = () => {
         </div>
 
         {/* Partner Logos */}
-        <div className="my-24 ">
-          <h3 className="mb-6 text-center text-2xl font-bold text-gray-900">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={controls}
+          variants={{
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.5 },
+            },
+          }}
+          className="my-24"
+        >
+          <motion.h3
+            initial={{ opacity: 0, y: -20 }}
+            animate={controls}
+            variants={titleVariants}
+            className="mb-6 text-center text-2xl font-bold text-gray-900"
+          >
             Integrated with Leading Health Providers
-          </h3>
+          </motion.h3>
 
           <div className="relative w-full overflow-hidden">
             <div className="flex w-[200%] animate-horizontal-scroll">
@@ -390,12 +420,13 @@ const AboutSection = () => {
                 {integrations.map((logo, i) => (
                   <motion.div
                     key={`first-${i}`}
-                    initial={{ opacity: 0 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={controls}
                     variants={{
                       visible: {
                         opacity: 1,
-                        transition: { duration: 0.3, delay: 0.1 * i },
+                        y: 0,
+                        transition: { duration: 0.5, delay: i * 0.1 },
                       },
                     }}
                     className="flex h-16 w-32 shrink-0 items-center justify-center"
@@ -419,12 +450,13 @@ const AboutSection = () => {
                 {integrations.map((logo, i) => (
                   <motion.div
                     key={`second-${i}`}
-                    initial={{ opacity: 0 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={controls}
                     variants={{
                       visible: {
                         opacity: 1,
-                        transition: { duration: 0.3, delay: 0.1 * i },
+                        y: 0,
+                        transition: { duration: 0.5, delay: i * 0.1 },
                       },
                     }}
                     className="flex h-16 w-32 shrink-0 items-center justify-center"
@@ -444,7 +476,7 @@ const AboutSection = () => {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
