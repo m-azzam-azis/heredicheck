@@ -20,39 +20,43 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Makers */}
+          {/* Developers */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-green-300">Makers</h3>
+            <h3 className="text-xl font-bold text-green-300">Developers</h3>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm">Jane Doe</span>
+                <span className="text-sm">Azzam</span>
                 <div className="flex gap-2">
                   <Link
-                    href="https://github.com/janedoe"
+                    href="https://github.com/m-azzam-azis"
                     className="text-green-200 hover:text-white transition-colors"
+                    target="_blank"
                   >
                     <Github size={16} />
                   </Link>
                   <Link
-                    href="https://linkedin.com/in/janedoe"
+                    href="https://linkedin.com/in/m-azzam-azis"
                     className="text-green-200 hover:text-white transition-colors"
+                    target="_blank"
                   >
                     <Linkedin size={16} />
                   </Link>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm">John Smith</span>
+                <span className="text-sm">Faiz Assabil</span>
                 <div className="flex gap-2">
                   <Link
-                    href="https://github.com/johnsmith"
+                    href="https://github.com/fassabilf"
                     className="text-green-200 hover:text-white transition-colors"
+                    target="_blank"
                   >
                     <Github size={16} />
                   </Link>
                   <Link
-                    href="https://linkedin.com/in/johnsmith"
+                    href="https://linkedin.com/in/fassabilf/"
                     className="text-green-200 hover:text-white transition-colors"
+                    target="_blank"
                   >
                     <Linkedin size={16} />
                   </Link>
@@ -67,7 +71,8 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="https://github.com/heredicheck/repo"
+                  href="https://github.com/m-azzam-azis/heredicheck"
+                  target="_blank"
                   className="text-sm text-green-200 hover:text-white transition-colors flex items-center gap-2"
                 >
                   <Code2 size={16} />
@@ -77,6 +82,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="https://youtube.com/watch?v=heredicheck-demo"
+                  target="_blank"
                   className="text-sm text-green-200 hover:text-white transition-colors flex items-center gap-2"
                 >
                   <Youtube size={16} />

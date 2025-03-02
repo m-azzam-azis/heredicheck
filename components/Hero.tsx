@@ -3,6 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { CheckCircle, Activity, Shield } from "lucide-react";
+import Dna from "./svg/Dna";
 
 const HeroSection = () => {
   return (
@@ -71,33 +72,9 @@ const HeroSection = () => {
           >
             <div className="relative overflow-hidden rounded-xl border bg-white shadow-xl">
               {/* DNA Double Helix Illustration */}
-              <svg
-                viewBox="0 0 400 400"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-full w-full"
-              >
-                <rect width="400" height="400" fill="#f9fafb" />
-                <path
-                  d="M200 50C200 50 280 80 280 200C280 320 200 350 200 350"
-                  stroke="#16a34a"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M200 50C200 50 120 80 120 200C120 320 200 350 200 350"
-                  stroke="#16a34a"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                />
-                <circle cx="200" cy="80" r="10" fill="#16a34a" />
-                <circle cx="200" cy="120" r="10" fill="#16a34a" />
-                <circle cx="200" cy="160" r="10" fill="#16a34a" />
-                <circle cx="200" cy="200" r="10" fill="#16a34a" />
-                <circle cx="200" cy="240" r="10" fill="#16a34a" />
-                <circle cx="200" cy="280" r="10" fill="#16a34a" />
-                <circle cx="200" cy="320" r="10" fill="#16a34a" />
-              </svg>
+              <div className="size-[350px] grid place-items-center">
+                <Dna />
+              </div>
 
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white p-6 pt-24">
                 <div className="rounded-lg bg-green-50 p-4">

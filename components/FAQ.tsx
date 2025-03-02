@@ -107,13 +107,14 @@ export function FAQSection() {
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <a
-              href="#contact"
+              href="mailto:m.azzam.azis@gmail.com"
               className="inline-flex items-center justify-center rounded-md border border-green-600 px-6 py-2 text-sm font-medium text-green-600 hover:bg-green-50"
             >
               Contact Support
             </a>
             <a
-              href="#resources"
+              href="https://github.com/m-azzam-azis/heredicheck"
+              target="_blank"
               className="inline-flex items-center justify-center rounded-md bg-green-100 px-6 py-2 text-sm font-medium text-green-700 hover:bg-green-200"
             >
               View Resources
