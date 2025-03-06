@@ -437,13 +437,8 @@ export default function Assessment() {
                   <span>
                     Step {currentStep} of {totalSteps}
                   </span>
-                  <span>{Math.round(progressValue)}% Complete</span>
                 </div>
-                <Progress
-                  value={progressValue}
-                  className="h-2 bg-green-100"
-                  indicatorClassName="bg-green-600"
-                />
+                <Progress value={progressValue} className="h-2 bg-green-100" />
               </div>
             </CardHeader>
 
