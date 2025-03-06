@@ -11,7 +11,7 @@ import { CornerDownLeft, User, Bot } from "lucide-react"; // Add these imports
 import { createRef, useState, KeyboardEvent, useRef, useEffect } from "react"; // Add useRef and useEffect
 
 import chat from "@/lib/GeminiAI";
-import ReactMarkdown from "react-markdown";
+import Markdown from "react-markdown";
 import { motion } from "framer-motion"; // Add this import
 
 export default function ChatBotPage() {
@@ -111,7 +111,7 @@ export default function ChatBotPage() {
                     className="flex justify-start"
                   >
                     <ChatBubbleMessage variant="received">
-                      <ReactMarkdown>{message.response}</ReactMarkdown>
+                      <Markdown>{message.response}</Markdown>
                     </ChatBubbleMessage>
                   </motion.div>
                 )}
