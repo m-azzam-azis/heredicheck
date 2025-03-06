@@ -137,6 +137,11 @@ export default function AppNavbar({
       href: "/patient-sphere/patient/immunizations",
       icon: <IconVaccine className={classes.linkIcon} />,
     },
+    {
+      display: "Relationships",
+      href: "/patient-sphere/patient/relationships",
+      icon: <IconUsersGroup className={classes.linkIcon} />,
+    },
   ];
 
   const tools: IMenuItem[] = [
