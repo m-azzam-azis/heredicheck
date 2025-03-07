@@ -6,14 +6,16 @@ import { Container, LoadingOverlay, Title, Text } from "@mantine/core";
 import Head from "next/head";
 import { AppContext } from "@/lib/hooks/AppContext/AppContext";
 import PatientHeader from "@/lib/components/fhir/PatientHeader";
-import RelatedPersonView from "@/lib/components/fhir/RelatedPersonView";
+import FamilyMemberHistoryView from "@/lib/components/fhir/FamilyMemberHistoryView";
 
 export interface IPageProps {}
 export default function Page(props: IPageProps) {
   const appContext = useContext(AppContext);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [patient, setPatient] = useState<r4.Patient | undefined>(undefined);
-  const [relatedPersons, setRelatedPersons] = useState<r4.RelatedPerson[]>([]);
+  const [familyHistory, setFamilyHistory] = useState<r4.FamilyMemberHistory[]>(
+    []
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -32,12 +34,12 @@ export default function Page(props: IPageProps) {
         const patient = patients[0] ?? null;
         setPatient(patient);
 
-        // Get related persons
-        const relatedPersonsResponse = await appContext.fhirClient.request(
-          `RelatedPerson?patient=${patientId}`,
+        // Get family history
+        const familyHistoryResponse = await appContext.fhirClient.request(
+          `FamilyMemberHistory?patient=${patientId}`,
           { flat: true }
         );
-        setRelatedPersons(relatedPersonsResponse || []);
+        setFamilyHistory(familyHistoryResponse || []);
 
         // Update app context
         if (patient !== null && appContext.patient === null) {
@@ -65,28 +67,23 @@ export default function Page(props: IPageProps) {
   return (
     <Container fluid={true}>
       <Head>
-        <title>Patient Relations</title>
+        <title>Family Health History</title>
       </Head>
       <LoadingOverlay visible={isLoading} />
+      <Title>Family Health History</Title>
 
       <div className="space-y-6">
-        <Title>Patient Relations</Title>
-        <PatientHeader patient={patient} />
+        <div className="flex items-center gap-4"></div>
 
         <div className="mt-8">
-          {relatedPersons.length > 0 ? (
-            <div className="space-y-4">
-              {relatedPersons.map((person, index) => (
-                <RelatedPersonView
-                  key={person.id || index}
-                  relatedPerson={person}
-                />
-              ))}
-            </div>
+          {familyHistory.length > 0 ? (
+            <FamilyMemberHistoryView familyHistories={familyHistory} />
           ) : (
-            <Text color="dimmed" className="text-center py-8">
-              No related persons found for this patient.
-            </Text>
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <Text color="dimmed">
+                No family health history found for this patient.
+              </Text>
+            </div>
           )}
         </div>
       </div>

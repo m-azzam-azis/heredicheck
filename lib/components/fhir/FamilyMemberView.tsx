@@ -1,15 +1,18 @@
 import React from "react";
 import { RelatedPerson } from "fhir/r4";
+import { FamilyMemberHistory } from "fhir/r4";
 import CodeableConceptView from "./CodeableConceptView";
 import DateView from "./DateView";
 import HumanNameView from "./HumanNameView";
 import AddressView from "./AddressView";
 
-export interface IRelatedPersonViewProps {
+export interface IFamilyMemberHistoryProps {
   relatedPerson?: RelatedPerson;
 }
 
-export const RelatedPersonView: React.FC<IRelatedPersonViewProps> = (props) => {
+export const FamilyMemberHistoryView: React.FC<IFamilyMemberHistoryProps> = (
+  props
+) => {
   if (!props.relatedPerson) {
     return null;
   }
@@ -94,4 +97,4 @@ export const RelatedPersonView: React.FC<IRelatedPersonViewProps> = (props) => {
   );
 };
 
-export default RelatedPersonView;
+export default FamilyMemberHistoryView;

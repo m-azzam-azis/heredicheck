@@ -1,19 +1,24 @@
 "use client";
-// pages/assessment.tsx
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -21,891 +26,565 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { IconAlertCircle } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
 
-// TypeScript interfaces
-interface Condition {
-  name: string;
-}
-
-interface Sibling {
-  type: "brother" | "sister";
-  conditions: string[];
-}
-
-interface AssessmentResult {
-  self: string[];
-  mother: string[];
-  father: string[];
-  brothers: string[];
-  sisters: string[];
-}
-
-const commonConditions: string[] = [
+const conditions = [
   "Diabetes",
   "Hypertension",
-  "Heart Disease",
   "Cancer",
+  "Heart Disease",
+  "Alzheimer",
   "Asthma",
-  "Allergies",
-  "Arthritis",
-  "Depression",
-  "Anxiety",
-  "None of the above",
 ];
 
-export default function Assessment() {
-  // Form steps
-  const [currentStep, setCurrentStep] = useState<number>(1);
-  const totalSteps = 3;
+const formSchema = z.object({
+  personalInfo: z.object({
+    age: z.string().min(1, "Age is required"),
+    gender: z.string().min(1, "Gender is required"),
+  }),
+  conditions: z.array(z.string()),
+  familyHistory: z.object({
+    father: z.array(z.string()),
+    mother: z.array(z.string()),
+    siblings: z.array(z.string()),
+  }),
+});
 
-  // User conditions state
-  const [userConditions, setUserConditions] = useState<string[]>([]);
-  const [newUserCondition, setNewUserCondition] = useState<string>("");
+interface PredictionResponse {
+  probabilities: {
+    [patientId: string]: {
+      [condition: string]: number;
+    };
+  };
+}
 
-  // Parent conditions state
-  const [motherConditions, setMotherConditions] = useState<string[]>([]);
-  const [fatherConditions, setFatherConditions] = useState<string[]>([]);
-  const [newParentCondition, setNewParentCondition] = useState<string>("");
-
-  // Siblings state
-  const [siblings, setSiblings] = useState<Sibling[]>([]);
-  const [newSibling, setNewSibling] = useState<Sibling>({
-    type: "brother",
-    conditions: [],
+export default function AssessmentPage() {
+  const [step, setStep] = useState(1);
+  const [results, setResults] = useState<PredictionResponse | null>(null);
+  const router = useRouter();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      personalInfo: { age: "", gender: "" },
+      conditions: [],
+      familyHistory: {
+        father: [],
+        mother: [],
+        siblings: [],
+      },
+    },
   });
-  const [isAddingSibling, setIsAddingSibling] = useState<boolean>(false);
 
-  // Form submission state
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-  const [assessmentResult, setAssessmentResult] =
-    useState<AssessmentResult | null>(null);
-
-  // Handle user conditions
-  const handleUserConditionAdd = () => {
-    if (newUserCondition && !userConditions.includes(newUserCondition)) {
-      setUserConditions([...userConditions, newUserCondition]);
-      setNewUserCondition("");
-    }
+  const getRiskLevel = (probability: number) => {
+    if (probability >= 0.7)
+      return { color: "destructive", level: "High", bgColor: "bg-red-100" };
+    if (probability >= 0.4)
+      return { color: "warning", level: "Moderate", bgColor: "bg-yellow-100" };
+    return { color: "success", level: "Low", bgColor: "bg-green-100" };
   };
 
-  const handleUserConditionSelect = (condition: string) => {
-    if (
-      !userConditions.includes(condition) &&
-      condition !== "None of the above"
-    ) {
-      setUserConditions([...userConditions, condition]);
-    } else if (condition === "None of the above") {
-      setUserConditions([]);
-    }
-  };
-
-  const handleUserConditionRemove = (condition: string) => {
-    setUserConditions(userConditions.filter((c) => c !== condition));
-  };
-
-  // Handle parent conditions
-  const handleParentConditionAdd = (parent: "mother" | "father") => {
-    if (newParentCondition) {
-      if (
-        parent === "mother" &&
-        !motherConditions.includes(newParentCondition)
-      ) {
-        setMotherConditions([...motherConditions, newParentCondition]);
-      } else if (
-        parent === "father" &&
-        !fatherConditions.includes(newParentCondition)
-      ) {
-        setFatherConditions([...fatherConditions, newParentCondition]);
-      }
-      setNewParentCondition("");
-    }
-  };
-
-  const handleParentConditionSelect = (
-    condition: string,
-    parent: "mother" | "father"
-  ) => {
-    if (parent === "mother") {
-      if (
-        !motherConditions.includes(condition) &&
-        condition !== "None of the above"
-      ) {
-        setMotherConditions([...motherConditions, condition]);
-      } else if (condition === "None of the above") {
-        setMotherConditions([]);
-      }
-    } else if (parent === "father") {
-      if (
-        !fatherConditions.includes(condition) &&
-        condition !== "None of the above"
-      ) {
-        setFatherConditions([...fatherConditions, condition]);
-      } else if (condition === "None of the above") {
-        setFatherConditions([]);
-      }
-    }
-  };
-
-  const handleParentConditionRemove = (
-    condition: string,
-    parent: "mother" | "father"
-  ) => {
-    if (parent === "mother") {
-      setMotherConditions(motherConditions.filter((c) => c !== condition));
-    } else if (parent === "father") {
-      setFatherConditions(fatherConditions.filter((c) => c !== condition));
-    }
-  };
-
-  // Handle sibling operations
-  const handleNewSiblingChange = (field: keyof Sibling, value: any) => {
-    setNewSibling({ ...newSibling, [field]: value });
-  };
-
-  const handleNewSiblingConditionSelect = (condition: string) => {
-    if (
-      !newSibling.conditions.includes(condition) &&
-      condition !== "None of the above"
-    ) {
-      handleNewSiblingChange("conditions", [
-        ...newSibling.conditions,
-        condition,
-      ]);
-    } else if (condition === "None of the above") {
-      handleNewSiblingChange("conditions", []);
-    }
-  };
-
-  const handleNewSiblingConditionRemove = (condition: string) => {
-    handleNewSiblingChange(
-      "conditions",
-      newSibling.conditions.filter((c) => c !== condition)
-    );
-  };
-
-  const handleAddSibling = () => {
-    if (newSibling.type) {
-      setSiblings([...siblings, { ...newSibling }]);
-      setNewSibling({
-        type: "brother",
-        conditions: [],
-      });
-      setIsAddingSibling(false);
-    }
-  };
-
-  const handleRemoveSibling = (index: number) => {
-    setSiblings(siblings.filter((_, i) => i !== index));
-  };
-
-  // Navigation
-  const nextStep = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handleSubmit();
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  // Form submission
-  const handleSubmit = () => {
-    // Combine conditions for brothers and sisters
-    const brothersConditions: string[] = [];
-    const sistersConditions: string[] = [];
-
-    siblings.forEach((sibling) => {
-      if (sibling.type === "brother") {
-        sibling.conditions.forEach((condition) => {
-          if (!brothersConditions.includes(condition)) {
-            brothersConditions.push(condition);
-          }
-        });
-      } else if (sibling.type === "sister") {
-        sibling.conditions.forEach((condition) => {
-          if (!sistersConditions.includes(condition)) {
-            sistersConditions.push(condition);
-          }
-        });
-      }
-    });
-
-    const result: AssessmentResult = {
-      self: userConditions,
-      mother: motherConditions,
-      father: fatherConditions,
-      brothers: brothersConditions,
-      sisters: sistersConditions,
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const payload = {
+      patients: [
+        {
+          id: "self-assessment",
+          patient_condition: values.conditions.join(" "),
+          patient_immunization: "None",
+          patient_allergy: "None",
+        },
+        {
+          id: "father-self-assessment",
+          patient_condition: values.familyHistory.father.join(" "),
+          patient_immunization: "None",
+          patient_allergy: "None",
+        },
+        {
+          id: "mother-self-assessment",
+          patient_condition: values.familyHistory.mother.join(" "),
+          patient_immunization: "None",
+          patient_allergy: "None",
+        },
+        {
+          id: "sibling-self-assessment",
+          patient_condition: values.familyHistory.siblings.join(" "),
+          patient_immunization: "None",
+          patient_allergy: "None",
+        },
+      ],
+      relationships: [
+        {
+          id_patient: "father-self-assessment",
+          related_patient: "self-assessment",
+          type: "Father",
+        },
+        {
+          id_patient: "mother-self-assessment",
+          related_patient: "self-assessment",
+          type: "Mother",
+        },
+        {
+          id_patient: "sibling-self-assessment",
+          related_patient: "self-assessment",
+          type: "Sibling",
+        },
+      ],
     };
 
-    setAssessmentResult(result);
-    setIsSubmitted(true);
+    try {
+      const response = await fetch(
+        "https://api-heredicheck.up.railway.app/predict_proba",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        setResults(result);
+        setStep(4); // Move to results step
+      }
+    } catch (error) {
+      console.error("Error submitting assessment:", error);
+    }
   };
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
+  const totalSteps = 3;
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-      },
-    },
-  };
+  const renderResults = () => {
+    if (!results?.probabilities?.["self-assessment"]) return null;
 
-  // Progress calculation
-  const progressValue = (currentStep / totalSteps) * 100;
+    const predictions = results.probabilities["self-assessment"];
 
-  if (isSubmitted && assessmentResult) {
     return (
-      <div className="container mx-auto py-10 max-w-4xl">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card className="border-green-600 border-t-4">
-            <CardHeader className="bg-green-50 rounded-t-lg">
-              <CardTitle className="text-2xl text-center text-green-800">
-                Health Assessment Submitted
-              </CardTitle>
-              <CardDescription className="text-center">
-                Thank you for completing your health assessment
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 p-6">
-              <h3 className="font-medium text-lg text-green-700">
-                Assessment Results
-              </h3>
-
-              <div className="space-y-4">
-                <div className="border-b pb-3">
-                  <h4 className="font-medium mb-2 text-green-700">
-                    Your Conditions
-                  </h4>
-                  {assessmentResult.self.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {assessmentResult.self.map((condition) => (
-                        <Badge
-                          key={condition}
-                          className="bg-green-100 text-green-800 hover:bg-green-200"
-                        >
-                          {condition}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 italic">None reported</p>
-                  )}
-                </div>
-
-                <div className="border-b pb-3">
-                  <h4 className="font-medium mb-2 text-green-700">
-                    Mother's Conditions
-                  </h4>
-                  {assessmentResult.mother.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {assessmentResult.mother.map((condition) => (
-                        <Badge
-                          key={condition}
-                          className="bg-green-100 text-green-800 hover:bg-green-200"
-                        >
-                          {condition}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 italic">None reported</p>
-                  )}
-                </div>
-
-                <div className="border-b pb-3">
-                  <h4 className="font-medium mb-2 text-green-700">
-                    Father's Conditions
-                  </h4>
-                  {assessmentResult.father.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {assessmentResult.father.map((condition) => (
-                        <Badge
-                          key={condition}
-                          className="bg-green-100 text-green-800 hover:bg-green-200"
-                        >
-                          {condition}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 italic">None reported</p>
-                  )}
-                </div>
-
-                <div className="border-b pb-3">
-                  <h4 className="font-medium mb-2 text-green-700">
-                    Brothers' Conditions (Combined)
-                  </h4>
-                  {assessmentResult.brothers.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {assessmentResult.brothers.map((condition) => (
-                        <Badge
-                          key={condition}
-                          className="bg-green-100 text-green-800 hover:bg-green-200"
-                        >
-                          {condition}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 italic">None reported</p>
-                  )}
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-2 text-green-700">
-                    Sisters' Conditions (Combined)
-                  </h4>
-                  {assessmentResult.sisters.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {assessmentResult.sisters.map((condition) => (
-                        <Badge
-                          key={condition}
-                          className="bg-green-100 text-green-800 hover:bg-green-200"
-                        >
-                          {condition}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 italic">None reported</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-center mt-4">
-                <Button
-                  onClick={() => setIsSubmitted(false)}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  Return to Assessment
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto py-10 max-w-4xl">
       <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-6 p-6"
       >
-        <motion.div variants={itemVariants}>
-          <Card className="border-green-600 border-t-4">
-            <CardHeader className="bg-green-50 rounded-t-lg">
-              <CardTitle className="text-2xl text-green-800">
-                Health Assessment Form
-              </CardTitle>
-              <CardDescription>
-                Please provide information about your medical conditions and
-                family history
-              </CardDescription>
-              <div className="pt-4">
-                <div className="flex justify-between text-sm mb-1">
-                  <span>
-                    Step {currentStep} of {totalSteps}
+        <h3 className="text-xl font-semibold mb-4">
+          Your Health Risk Assessment
+        </h3>
+
+        <div className="grid gap-4">
+          {Object.entries(predictions).map(([condition, probability]) => {
+            const risk = getRiskLevel(probability);
+            return (
+              <div
+                key={condition}
+                className="bg-white p-4 rounded-lg shadow-sm"
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">{condition}</span>
+                  <span
+                    className={`px-2 py-1 rounded-full text-sm font-medium ${risk.bgColor}`}
+                  >
+                    {risk.level} Risk
                   </span>
                 </div>
-                <Progress value={progressValue} className="h-2 bg-green-100" />
+                <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${probability * 100}%` }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className={`h-full ${
+                      risk.color === "destructive"
+                        ? "bg-red-500"
+                        : risk.color === "warning"
+                        ? "bg-yellow-500"
+                        : "bg-green-500"
+                    }`}
+                  />
+                </div>
+                <div className="text-right mt-1">
+                  <span className="text-sm text-gray-500">
+                    {(probability * 100).toFixed(1)}% probability
+                  </span>
+                </div>
               </div>
-            </CardHeader>
+            );
+          })}
+        </div>
 
-            <CardContent className="p-6">
-              {currentStep === 1 && (
-                <motion.div
-                  variants={itemVariants}
-                  className="space-y-6"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-green-700">
-                      Your Medical Conditions
-                    </h3>
+        <div className="bg-blue-50 p-4 rounded-lg mt-6">
+          <div className="flex gap-2">
+            <IconAlertCircle className="text-blue-500 h-5 w-5" />
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-blue-900">Next Steps</h4>
+              <p className="text-sm text-blue-700 mt-1">
+                Consider discussing these results with a healthcare provider for
+                personalized advice.
+              </p>
+            </div>
+          </div>
+        </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {commonConditions.map((condition) => (
-                        <div
-                          key={condition}
-                          className="flex items-center space-x-2"
-                        >
-                          <Checkbox
-                            id={`user-${condition}`}
-                            checked={
-                              condition === "None of the above"
-                                ? userConditions.length === 0
-                                : userConditions.includes(condition)
-                            }
-                            onCheckedChange={() =>
-                              handleUserConditionSelect(condition)
-                            }
-                            className="border-green-500 text-green-600"
-                          />
-                          <Label htmlFor={`user-${condition}`}>
-                            {condition}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
+        <div className="flex justify-center mt-6">
+          <Button onClick={() => router.push("/")} variant="outline">
+            Back to Home
+          </Button>
+        </div>
+      </motion.div>
+    );
+  };
 
-                    <div className="mt-4">
-                      <Label htmlFor="newUserCondition">
-                        Add another condition
-                      </Label>
-                      <div className="flex mt-1 space-x-2">
-                        <Input
-                          id="newUserCondition"
-                          value={newUserCondition}
-                          onChange={(e) => setNewUserCondition(e.target.value)}
-                          placeholder="Enter condition"
-                          className="border-green-200 focus:border-green-500 focus:ring-green-500"
-                        />
-                        <Button
-                          onClick={handleUserConditionAdd}
-                          disabled={!newUserCondition}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          Add
-                        </Button>
-                      </div>
-                    </div>
+  const renderStep = () => {
+    if (step === 4) {
+      return renderResults();
+    }
 
-                    {userConditions.length > 0 && (
-                      <div className="mt-4">
-                        <Label>Your selected conditions:</Label>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {userConditions.map((condition) => (
-                            <Badge
-                              key={condition}
-                              className="bg-green-100 text-green-800 hover:bg-green-200 flex items-center gap-1"
-                            >
-                              {condition}
-                              <button
-                                className="ml-1 h-4 w-4 rounded-full inline-flex items-center justify-center hover:bg-green-200"
-                                onClick={() =>
-                                  handleUserConditionRemove(condition)
-                                }
-                              >
-                                ✕
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
+    switch (step) {
+      case 1:
+        return (
+          <CardContent className="min-h-[400px] space-y-4">
+            <FormField
+              control={form.control}
+              name="personalInfo.age"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Age</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-
-              {currentStep === 2 && (
-                <motion.div
-                  variants={itemVariants}
-                  className="space-y-6"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  {/* Mother's Conditions */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-green-700">
-                      Mother's Medical Conditions
-                    </h3>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {commonConditions.map((condition) => (
-                        <div
-                          key={condition}
-                          className="flex items-center space-x-2"
-                        >
-                          <Checkbox
-                            id={`mother-${condition}`}
-                            checked={
-                              condition === "None of the above"
-                                ? motherConditions.length === 0
-                                : motherConditions.includes(condition)
-                            }
-                            onCheckedChange={() =>
-                              handleParentConditionSelect(condition, "mother")
-                            }
-                            className="border-green-500 text-green-600"
-                          />
-                          <Label htmlFor={`mother-${condition}`}>
-                            {condition}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-4">
-                      <Label htmlFor="newMotherCondition">
-                        Add another condition
-                      </Label>
-                      <div className="flex mt-1 space-x-2">
-                        <Input
-                          id="newMotherCondition"
-                          value={newParentCondition}
-                          onChange={(e) =>
-                            setNewParentCondition(e.target.value)
-                          }
-                          placeholder="Enter condition"
-                          className="border-green-200 focus:border-green-500 focus:ring-green-500"
-                        />
-                        <Button
-                          onClick={() => handleParentConditionAdd("mother")}
-                          disabled={!newParentCondition}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          Add
-                        </Button>
-                      </div>
-                    </div>
-
-                    {motherConditions.length > 0 && (
-                      <div className="mt-4">
-                        <Label>Mother's selected conditions:</Label>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {motherConditions.map((condition) => (
-                            <Badge
-                              key={condition}
-                              className="bg-green-100 text-green-800 hover:bg-green-200 flex items-center gap-1"
-                            >
-                              {condition}
-                              <button
-                                className="ml-1 h-4 w-4 rounded-full inline-flex items-center justify-center hover:bg-green-200"
-                                onClick={() =>
-                                  handleParentConditionRemove(
-                                    condition,
-                                    "mother"
-                                  )
-                                }
-                              >
-                                ✕
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Father's Conditions */}
-                  <div className="space-y-4 pt-6 border-t">
-                    <h3 className="text-lg font-medium text-green-700">
-                      Father's Medical Conditions
-                    </h3>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {commonConditions.map((condition) => (
-                        <div
-                          key={condition}
-                          className="flex items-center space-x-2"
-                        >
-                          <Checkbox
-                            id={`father-${condition}`}
-                            checked={
-                              condition === "None of the above"
-                                ? fatherConditions.length === 0
-                                : fatherConditions.includes(condition)
-                            }
-                            onCheckedChange={() =>
-                              handleParentConditionSelect(condition, "father")
-                            }
-                            className="border-green-500 text-green-600"
-                          />
-                          <Label htmlFor={`father-${condition}`}>
-                            {condition}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-4">
-                      <Label htmlFor="newFatherCondition">
-                        Add another condition
-                      </Label>
-                      <div className="flex mt-1 space-x-2">
-                        <Input
-                          id="newFatherCondition"
-                          value={newParentCondition}
-                          onChange={(e) =>
-                            setNewParentCondition(e.target.value)
-                          }
-                          placeholder="Enter condition"
-                          className="border-green-200 focus:border-green-500 focus:ring-green-500"
-                        />
-                        <Button
-                          onClick={() => handleParentConditionAdd("father")}
-                          disabled={!newParentCondition}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          Add
-                        </Button>
-                      </div>
-                    </div>
-
-                    {fatherConditions.length > 0 && (
-                      <div className="mt-4">
-                        <Label>Father's selected conditions:</Label>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {fatherConditions.map((condition) => (
-                            <Badge
-                              key={condition}
-                              className="bg-green-100 text-green-800 hover:bg-green-200 flex items-center gap-1"
-                            >
-                              {condition}
-                              <button
-                                className="ml-1 h-4 w-4 rounded-full inline-flex items-center justify-center hover:bg-green-200"
-                                onClick={() =>
-                                  handleParentConditionRemove(
-                                    condition,
-                                    "father"
-                                  )
-                                }
-                              >
-                                ✕
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
+            />
+            <FormField
+              control={form.control}
+              name="personalInfo.gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gender</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )}
+            />
+          </CardContent>
+        );
 
-              {currentStep === 3 && (
-                <motion.div
-                  variants={itemVariants}
-                  className="space-y-6"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-green-700">
-                      Siblings Information
-                    </h3>
+      case 2:
+        return (
+          <CardContent className="min-h-[400px] space-y-4">
+            <FormField
+              control={form.control}
+              name="conditions"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Current Medical Conditions</FormLabel>
+                  <div className="grid grid-cols-2 gap-4">
+                    {conditions.map((condition) => (
+                      <FormField
+                        key={condition}
+                        control={form.control}
+                        name="conditions"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center space-x-2">
+                            <Checkbox
+                              checked={field.value?.includes(condition)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  field.onChange([...field.value, condition]);
+                                } else {
+                                  field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== condition
+                                    )
+                                  );
+                                }
+                              }}
+                            />
+                            <FormLabel className="font-normal">
+                              {condition}
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                  </div>
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        );
 
-                    {/* Existing siblings list */}
-                    {siblings.length > 0 && (
-                      <div className="space-y-4 mb-6">
-                        <Label>Your siblings:</Label>
-                        {siblings.map((sibling, index) => (
-                          <Card
-                            key={index}
-                            className="relative border-green-200"
-                          >
-                            <CardHeader className="pb-2">
-                              <CardTitle className="text-base text-green-800">
-                                {sibling.type === "brother"
-                                  ? "Brother"
-                                  : "Sister"}
-                              </CardTitle>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="absolute top-2 right-2 border-green-200 text-green-700 hover:bg-green-50"
-                                onClick={() => handleRemoveSibling(index)}
-                              >
-                                Remove
-                              </Button>
-                            </CardHeader>
-                            <CardContent>
-                              {sibling.conditions.length > 0 ? (
-                                <div className="flex flex-wrap gap-2">
-                                  {sibling.conditions.map((condition) => (
-                                    <Badge
-                                      key={condition}
-                                      className="bg-green-100 text-green-800 hover:bg-green-200"
-                                    >
-                                      {condition}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-gray-500 italic">
-                                  No medical conditions
-                                </p>
-                              )}
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Add new sibling button */}
-                    {!isAddingSibling && (
-                      <Button
-                        onClick={() => setIsAddingSibling(true)}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        Add Sibling
-                      </Button>
-                    )}
-
-                    {/* Add new sibling form */}
-                    {isAddingSibling && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-4 border border-green-200 p-4 rounded-md bg-green-50"
-                      >
-                        <div className="space-y-2">
-                          <Label htmlFor="siblingType">Sibling Type</Label>
-                          <Select
-                            value={newSibling.type}
-                            onValueChange={(value: "brother" | "sister") =>
-                              handleNewSiblingChange("type", value)
-                            }
-                          >
-                            <SelectTrigger className="border-green-200 focus:ring-green-500">
-                              <SelectValue placeholder="Select relationship" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="brother">Brother</SelectItem>
-                              <SelectItem value="sister">Sister</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Medical Conditions</Label>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                            {commonConditions.map((condition) => (
-                              <div
-                                key={condition}
-                                className="flex items-center space-x-2"
-                              >
-                                <Checkbox
-                                  id={`sibling-${condition}`}
-                                  checked={
-                                    condition === "None of the above"
-                                      ? newSibling.conditions.length === 0
-                                      : newSibling.conditions.includes(
-                                          condition
-                                        )
-                                  }
-                                  onCheckedChange={() =>
-                                    handleNewSiblingConditionSelect(condition)
-                                  }
-                                  className="border-green-500 text-green-600"
-                                />
-                                <Label htmlFor={`sibling-${condition}`}>
-                                  {condition}
-                                </Label>
-                              </div>
-                            ))}
-                          </div>
-
-                          {newSibling.conditions.length > 0 && (
-                            <div className="mt-4">
-                              <Label>Selected conditions:</Label>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                {newSibling.conditions.map((condition) => (
-                                  <Badge
-                                    key={condition}
-                                    className="bg-green-100 text-green-800 hover:bg-green-200 flex items-center gap-1"
-                                  >
-                                    {condition}
-                                    <button
-                                      className="ml-1 h-4 w-4 rounded-full inline-flex items-center justify-center hover:bg-green-200"
-                                      onClick={() =>
-                                        handleNewSiblingConditionRemove(
-                                          condition
-                                        )
-                                      }
-                                    >
-                                      ✕
-                                    </button>
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
+      case 3:
+        return (
+          <CardContent className="min-h-[400px] space-y-6">
+            <div>
+              <h3 className="font-semibold mb-4">Father's Health History</h3>
+              <FormField
+                control={form.control}
+                name="familyHistory.father"
+                render={() => (
+                  <FormItem>
+                    <div className="grid grid-cols-2 gap-4">
+                      {conditions.map((condition) => (
+                        <FormField
+                          key={`father-${condition}`}
+                          control={form.control}
+                          name="familyHistory.father"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center space-x-2">
+                              <Checkbox
+                                checked={field.value?.includes(condition)}
+                                onCheckedChange={(checked) => {
+                                  const newValue = checked
+                                    ? [...field.value, condition]
+                                    : field.value?.filter(
+                                        (value) => value !== condition
+                                      );
+                                  field.onChange(newValue);
+                                }}
+                              />
+                              <FormLabel className="font-normal">
+                                {condition}
+                              </FormLabel>
+                            </FormItem>
                           )}
-                        </div>
+                        />
+                      ))}
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+            <Separator />
+            <div>
+              <h3 className="font-semibold mb-4">Mother's Health History</h3>
+              <FormField
+                control={form.control}
+                name="familyHistory.mother"
+                render={() => (
+                  <FormItem>
+                    <div className="grid grid-cols-2 gap-4">
+                      {conditions.map((condition) => (
+                        <FormField
+                          key={`mother-${condition}`}
+                          control={form.control}
+                          name="familyHistory.mother"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center space-x-2">
+                              <Checkbox
+                                checked={field.value?.includes(condition)}
+                                onCheckedChange={(checked) => {
+                                  const newValue = checked
+                                    ? [...field.value, condition]
+                                    : field.value?.filter(
+                                        (value) => value !== condition
+                                      );
+                                  field.onChange(newValue);
+                                }}
+                              />
+                              <FormLabel className="font-normal">
+                                {condition}
+                              </FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+            <Separator />
+            <div>
+              <h3 className="font-semibold mb-4">Siblings' Health History</h3>
+              <FormField
+                control={form.control}
+                name="familyHistory.siblings"
+                render={() => (
+                  <FormItem>
+                    <div className="grid grid-cols-2 gap-4">
+                      {conditions.map((condition) => (
+                        <FormField
+                          key={`sibling-${condition}`}
+                          control={form.control}
+                          name="familyHistory.siblings"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center space-x-2">
+                              <Checkbox
+                                checked={field.value?.includes(condition)}
+                                onCheckedChange={(checked) => {
+                                  const newValue = checked
+                                    ? [...field.value, condition]
+                                    : field.value?.filter(
+                                        (value) => value !== condition
+                                      );
+                                  field.onChange(newValue);
+                                }}
+                              />
+                              <FormLabel className="font-normal">
+                                {condition}
+                              </FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        );
+    }
+  };
 
-                        <div className="flex space-x-2 pt-2">
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setIsAddingSibling(false);
-                              setNewSibling({
-                                type: "brother",
-                                conditions: [],
-                              });
-                            }}
-                            className="border-green-200 text-green-700 hover:bg-green-50"
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            onClick={handleAddSibling}
-                            disabled={!newSibling.type}
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            Add Sibling
-                          </Button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
-                </motion.div>
+  const handleNextStep = () => {
+    if (step < totalSteps) {
+      setStep(step + 1);
+    }
+  };
+
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    // Only process submission if it's the final step and submit button is clicked
+    if (step === totalSteps) {
+      const payload = {
+        patients: [
+          {
+            id: "self-assessment",
+            patient_condition: values.conditions.join(" "),
+            patient_immunization: "None",
+            patient_allergy: "None",
+          },
+          {
+            id: "father-self-assessment",
+            patient_condition: values.familyHistory.father.join(" "),
+            patient_immunization: "None",
+            patient_allergy: "None",
+          },
+          {
+            id: "mother-self-assessment",
+            patient_condition: values.familyHistory.mother.join(" "),
+            patient_immunization: "None",
+            patient_allergy: "None",
+          },
+          {
+            id: "sibling-self-assessment",
+            patient_condition: values.familyHistory.siblings.join(" "),
+            patient_immunization: "None",
+            patient_allergy: "None",
+          },
+        ],
+        relationships: [
+          {
+            id_patient: "father-self-assessment",
+            related_patient: "self-assessment",
+            type: "Father",
+          },
+          {
+            id_patient: "mother-self-assessment",
+            related_patient: "self-assessment",
+            type: "Mother",
+          },
+          {
+            id_patient: "sibling-self-assessment",
+            related_patient: "self-assessment",
+            type: "Sibling",
+          },
+        ],
+      };
+
+      try {
+        const response = await fetch(
+          "https://api-heredicheck.up.railway.app/predict_proba",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          setResults(result);
+          setStep(4);
+        }
+      } catch (error) {
+        console.error("Error submitting assessment:", error);
+      }
+    }
+  };
+
+  return (
+    <div className="container mx-auto py-10 min-h-screen">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-3xl mx-auto"
+      >
+        <Card className="min-h-[600px] flex flex-col">
+          <CardHeader>
+            <CardTitle>Health Assessment Form</CardTitle>
+            <CardDescription>
+              {step === 4
+                ? "Assessment Results"
+                : `Step ${step} of ${totalSteps}: ${
+                    step === 1
+                      ? "Personal Information"
+                      : step === 2
+                      ? "Medical Conditions"
+                      : "Family History"
+                  }`}
+            </CardDescription>
+          </CardHeader>
+
+          <Form {...form}>
+            <form className="flex flex-col flex-1">
+              <div className="flex-1">{renderStep()}</div>
+
+              {step !== 4 && (
+                <div className="flex justify-between p-6 mt-auto border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setStep(step - 1)}
+                    disabled={step === 1}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (step === totalSteps) {
+                        form.handleSubmit(handleSubmit)();
+                      } else {
+                        handleNextStep();
+                      }
+                    }}
+                  >
+                    {step === totalSteps ? "Submit" : "Next"}
+                  </Button>
+                </div>
               )}
-            </CardContent>
-
-            <CardFooter className="flex justify-between pt-6 border-t p-6">
-              <Button
-                variant="outline"
-                onClick={prevStep}
-                disabled={currentStep === 1}
-                className="border-green-200 text-green-700 hover:bg-green-50"
-              >
-                Previous
-              </Button>
-              <Button
-                onClick={nextStep}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                {currentStep === totalSteps ? "Submit" : "Next"}
-              </Button>
-            </CardFooter>
-          </Card>
-        </motion.div>
+            </form>
+          </Form>
+        </Card>
       </motion.div>
     </div>
   );

@@ -7,51 +7,59 @@ import Head from "next/head";
 import { AppContext } from "@/lib/hooks/AppContext/AppContext";
 import ConditionView from "@/lib/components/fhir/ConditionView";
 
-export interface IPageProps { }
+export interface IPageProps {}
 export default function Page(props: IPageProps) {
-    const appContext = useContext(AppContext);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [conditions, setConditions] = useState<r4.Condition[]>([]);
+  const appContext = useContext(AppContext);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [conditions, setConditions] = useState<r4.Condition[]>([]);
 
-    useEffect(() => {
-        const load = async() => {
-            if (!appContext.accessToken) { return; }
-            if (!appContext.fhirClient) { return; }
+  useEffect(() => {
+    const load = async () => {
+      if (!appContext.accessToken) {
+        return;
+      }
+      if (!appContext.fhirClient) {
+        return;
+      }
 
-            setIsLoading(true);
+      setIsLoading(true);
 
-            const patientId = appContext.patientFhirId;
-            const conditions = await appContext.fhirClient.request(`Condition?patient=${patientId}&category=problem-list-item&clinical-status=active`, { flat: true });
-            setConditions(conditions);
+      const patientId = appContext.patientFhirId;
+      const conditions = await appContext.fhirClient.request(
+        `Condition?patient=${patientId}`,
+        { flat: true }
+      );
+      setConditions(conditions);
 
-            setIsLoading(false);
-        }
+      setIsLoading(false);
+    };
 
-        load();
+    load();
+  }, [setIsLoading, setConditions]);
 
-    }, [setIsLoading, setConditions]);
+  return (
+    <Container fluid={true}>
+      <Head>
+        <title>Conditions</title>
+      </Head>
+      <LoadingOverlay visible={isLoading} />
+      <Title>Conditions</Title>
 
-
-    return (
-        <Container fluid={true}>
-            <Head><title>Conditions</title></Head>
-            <LoadingOverlay visible={isLoading} />
-            <Title>Conditions</Title>
-
-            {!isLoading && conditions.length > 0 ?
-            <div className="g-4">
-            {
-                conditions.map((condition: r4.Condition, idx: number) => {
-                    return (
-                        <div className="py-2" key={"ConditionView_" + idx.toString()}>
-                            <Card shadow="sm" className="border">
-                                <ConditionView condition={condition} />
-                            </Card>
-                        </div>
-                    );
-                })
-            }
-            </div> : <Text>No conditions found</Text>}
-        </Container>
-    );
+      {!isLoading && conditions.length > 0 ? (
+        <div className="g-4">
+          {conditions.map((condition: r4.Condition, idx: number) => {
+            return (
+              <div className="py-2" key={"ConditionView_" + idx.toString()}>
+                <Card shadow="sm" className="border">
+                  <ConditionView condition={condition} />
+                </Card>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <Text>No conditions found</Text>
+      )}
+    </Container>
+  );
 }

@@ -91,6 +91,41 @@ const useStyles = createStyles((theme) => {
         },
       },
     },
+
+    reportLink: {
+      ...theme.fn.focusStyles(),
+      display: "flex",
+      alignItems: "center",
+      textDecoration: "none",
+      fontSize: theme.fontSizes.sm,
+      padding: `8px 12px`,
+      borderRadius: theme.radius.sm,
+      fontWeight: 600,
+      color: theme.colors.green[6],
+      backgroundColor: theme.colors.green[0],
+      transition: "all 0.3s ease",
+
+      "&:hover": {
+        backgroundColor: theme.colors.green[6],
+        color: "white",
+        transform: "translateY(-2px)",
+        boxShadow: theme.shadows.sm,
+
+        [`& .${icon}`]: {
+          color: "white",
+        },
+      },
+    },
+
+    reportIcon: {
+      ref: icon,
+      color: theme.colors.green[6],
+      marginRight: theme.spacing.sm,
+      strokeWidth: 1.5,
+      width: 18,
+      height: 18,
+      transition: "all 0.3s ease",
+    },
   };
 });
 
@@ -128,7 +163,7 @@ export default function AppNavbar({
       icon: <IconPlant className={classes.linkIcon} />,
     },
     {
-      display: "Conditions",
+      display: "Condition History",
       href: "/patient-sphere/patient/conditions",
       icon: <IconVirus className={classes.linkIcon} />,
     },
@@ -138,24 +173,16 @@ export default function AppNavbar({
       icon: <IconVaccine className={classes.linkIcon} />,
     },
     {
-      display: "Relationships",
-      href: "/patient-sphere/patient/relationships",
+      display: "Family History",
+      href: "/patient-sphere/patient/family-history",
       icon: <IconUsersGroup className={classes.linkIcon} />,
     },
   ];
-
-  const tools: IMenuItem[] = [
-    {
-      display: "Settings",
-      href: "/patient-sphere/tools/settings",
-      icon: <IconSettings className={classes.linkIcon} />,
-    },
-    {
-      display: "Playground",
-      href: "/patient-sphere/tools/playground",
-      icon: <IconFlame className={classes.linkIcon} />,
-    },
-  ];
+  const reportPage: IMenuItem = {
+    display: "Generate Report",
+    href: "/patient-sphere/patient/report-prediction",
+    icon: <IconArchive className={classes.reportIcon} />, // Note: using reportIcon class
+  };
 
   return (
     <div className="z-[1]">
@@ -177,17 +204,12 @@ export default function AppNavbar({
 
           {/* Tools */}
           <Text className={classes.menuTitle}></Text>
-          {tools.map((item: IMenuItem, idx: number) => {
-            return (
-              <NavbarLink
-                href={item.href}
-                key={`AppNavbar_MenuItem_Tools_${idx}`}
-              >
-                {item.icon}
-                <span>{item.display}</span>
-              </NavbarLink>
-            );
-          })}
+          {reportPage && (
+            <NavbarLink href={reportPage.href} key="AppNavbar_MenuItem_Report">
+              {reportPage.icon}
+              <span>{reportPage.display}</span>
+            </NavbarLink>
+          )}
         </Navbar.Section>
       </Navbar>
     </div>
@@ -202,14 +224,18 @@ interface NavbarLinkProps {
 
 function NavbarLink(props: NavbarLinkProps): JSX.Element {
   const { classes, cx } = useStyles();
-
   const href: Url = { pathname: props.href };
+
+  // Special styling for Generate Report link
+  const isReportLink = props.href.includes("report-prediction");
+  const linkClass = isReportLink ? classes.reportLink : classes.link;
+
   if (props.appHref) {
     href.query = { app: props.appHref };
   }
 
   return (
-    <Link href={href} className={cx(classes.link)}>
+    <Link href={href} className={cx(linkClass)}>
       {props.children}
     </Link>
   );

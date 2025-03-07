@@ -22,6 +22,7 @@ import Image from "next/image";
 import BgDecoration from "./svg/BgDecoration";
 import FamilyTree from "./svg/FamilyTree";
 import { useRouter } from "next/navigation";
+import { useIntersectionObserver } from "@/lib/hooks/useIntersectionObserver";
 
 const integrations = [
   "athenahealth-logo.png",
@@ -154,6 +155,15 @@ const AboutSection = () => {
         "Regular updates as new research emerges about your specific genetic markers.",
     },
   ];
+
+  const integrationsRef = useRef(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useIntersectionObserver(integrationsRef, (entries) => {
+    entries.forEach((entry) => {
+      setIsPaused(!entry.isIntersecting);
+    });
+  });
 
   return (
     <section
@@ -419,8 +429,15 @@ const AboutSection = () => {
             Integrated with Leading Health Providers
           </motion.h3>
 
-          <div className="relative w-full overflow-hidden">
-            <div className="flex w-[200%] animate-horizontal-scroll">
+          <div
+            ref={integrationsRef}
+            className="relative w-full overflow-hidden"
+          >
+            <div
+              className={`flex w-[200%] ${
+                isPaused ? "animate-none" : "animate-horizontal-scroll"
+              }`}
+            >
               {/* First set of logos */}
               <div className="flex w-1/2 justify-around">
                 {integrations.map((logo, i) => (
@@ -435,7 +452,7 @@ const AboutSection = () => {
                         transition: { duration: 0.5, delay: i * 0.1 },
                       },
                     }}
-                    className="flex h-16 w-32 shrink-0 items-center justify-center"
+                    className="flex h-16 w-32 shrink-0 items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
                   >
                     <div className="relative h-16 w-40">
                       <Image
@@ -465,7 +482,7 @@ const AboutSection = () => {
                         transition: { duration: 0.5, delay: i * 0.1 },
                       },
                     }}
-                    className="flex h-16 w-32 shrink-0 items-center justify-center"
+                    className="flex h-16 w-32 shrink-0 items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
                   >
                     <div className="relative h-8 w-24">
                       <Image
