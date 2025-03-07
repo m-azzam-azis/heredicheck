@@ -38,7 +38,7 @@ const HeroSection = () => {
             <div className="mb-8 grid gap-4 sm:grid-cols-3">
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-green-600" />
-                <span className="text-sm text-gray-700">99.8% Accurate</span>
+                <span className="text-sm text-gray-700">Very Accurate</span>
               </div>
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-green-600" />

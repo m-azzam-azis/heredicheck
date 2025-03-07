@@ -24,17 +24,12 @@ export function FAQSection() {
     {
       question: "How accurate are the hereditary risk assessments?",
       answer:
-        "HerediCheck achieves 99.8% accuracy in detecting genetic variants. However, it's important to understand that genetic risk is just one factor in developing a condition. Our reports clearly explain what your genetic markers mean in context, including environmental and lifestyle factors. We recommend discussing your results with healthcare providers for a comprehensive understanding.",
+        "HerediCheck achieves >90% accuracy in detecting genetic variants. However, it's important to understand that genetic risk is just one factor in developing a condition. Our reports clearly explain what your genetic markers mean in context, including environmental and lifestyle factors. We recommend discussing your results with healthcare providers for a comprehensive understanding.",
     },
     {
       question: "Can HerediCheck replace medical diagnosis?",
       answer:
         "No, HerediCheck is not a diagnostic tool and doesn't replace professional medical advice, diagnosis, or treatment. Our service provides insights into genetic predispositions and risk factors that you can discuss with healthcare providers. Always consult with qualified medical professionals for diagnosis and treatment decisions.",
-    },
-    {
-      question: "How long does it take to receive my results?",
-      answer:
-        "After we receive your sample, typical processing time is 3-4 weeks. This includes lab analysis, quality control procedures, and comprehensive report generation. You'll receive email notifications when your sample is received and when your results are ready to view in your secure online portal.",
     },
     {
       question: "Can I test my children or family members?",
